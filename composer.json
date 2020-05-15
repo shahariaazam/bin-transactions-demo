@@ -1,6 +1,6 @@
 {
-    "name": "shahariaazam/bin-list-util",
-    "description": "An utility libary for demonstration",
+    "name": "shahariaazam/bin-transactions-demo",
+    "description": "Calculate transactions commission according to latest exchange rates and BIN data. [Demonstration Purpose Only]",
     "type": "library",
     "license": "MIT",
     "authors": [
