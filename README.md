@@ -37,6 +37,15 @@ php app.php transaction_file.txt
 
 For demonstration, you can use the demo transaction files from `tests/input.txt`. So your command would be `php app.php tests/input.txt`
 
+**Output for `php app.php tests/input.txt`**
+```
+1
+0.46
+1.73
+2.41
+45.08
+```
+
 #### Within Application
 
 ```php
