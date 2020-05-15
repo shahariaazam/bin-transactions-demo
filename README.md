@@ -14,7 +14,7 @@ This is an utility library that will calculate commissions based on BIN data and
 It's very simple. Just clone this repository and install all dependencies.
 
 ```
-git clone https://github.com
+git clone https://github.com/shahariaazam/bin-transactions-demo.git
 ```
 
 After cloning, install all dependencies.
