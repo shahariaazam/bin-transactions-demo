@@ -23,8 +23,12 @@
  * THE SOFTWARE.
  */
 
+use ShahariaAzam\BinList\Api\BINClient;
+use ShahariaAzam\BinList\Api\ExchangeRateClient;
 use ShahariaAzam\BinList\CommissionProcessor;
+use ShahariaAzam\BinList\CommissionRules;
 use ShahariaAzam\BinList\TransactionFileLoader;
+use Symfony\Component\HttpClient\Psr18Client;
 
 // Include dependencies
 require __DIR__ . DIRECTORY_SEPARATOR . "vendor/autoload.php";
@@ -34,9 +38,14 @@ if (count($argv) < 2) {
     exit("[ERROR] Invalid command" . PHP_EOL);
 }
 
+$httpClient = new Psr18Client();
+$exchangeRateClient = new ExchangeRateClient($httpClient);
+$BINClient = new BINClient($httpClient);
+$transactionStorage = new TransactionFileLoader($argv[1]);
+$commissionRules = new CommissionRules(0.01, 0.02);
+
 // Initialize commission processor
-$commissionProcessor = new CommissionProcessor();
-$commissionProcessor->setTransactionStorage(new TransactionFileLoader($argv[1]));
+$commissionProcessor = new CommissionProcessor($httpClient, $exchangeRateClient, $BINClient, $transactionStorage, $commissionRules);
 $outputs = $commissionProcessor->process();
 foreach ($outputs as $output) {
     echo $output . PHP_EOL;
