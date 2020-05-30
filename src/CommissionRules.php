@@ -24,35 +24,45 @@
  */
 
 /**
- * CountryEntity class
+ * CommissionRules class
  *
- * @package  src\Entity
+ * @package  ShahariaAzam\BinList
  */
 
 
-namespace ShahariaAzam\BinList\Tests\Entity;
+namespace ShahariaAzam\BinList;
 
-use PHPUnit\Framework\TestCase;
-
-class CountryEntityTest extends TestCase
+class CommissionRules
 {
-    public function testEntity()
-    {
-        $country = new \ShahariaAzam\BinList\Entity\CountryEntity();
-        $country->setName('DEMO');
-        $country->setCurrency('DEMO');
-        $country->setAlpha2('DE');
-        $country->setNumeric(001);
-        $country->setLongitude(10);
-        $country->setLatitude(10);
-        $country->setEmoji('🇬🇧');
+    /**
+     * @var float
+     */
+    private $insideEU;
 
-        $this->assertEquals('DEMO', $country->getName());
-        $this->assertEquals('DEMO', $country->getCurrency());
-        $this->assertEquals('DE', $country->getAlpha2());
-        $this->assertEquals(001, $country->getNumeric());
-        $this->assertEquals(10, $country->getLatitude());
-        $this->assertEquals(10, $country->getLongitude());
-        $this->assertEquals('🇬🇧', $country->getEmoji());
+    /**
+     * @var float
+     */
+    private $outsideEU;
+
+    public function __construct($insideEU, $outsideEU)
+    {
+        $this->insideEU = $insideEU;
+        $this->outsideEU = $outsideEU;
+    }
+
+    /**
+     * @return float
+     */
+    public function getInsideEU(): float
+    {
+        return $this->insideEU;
+    }
+
+    /**
+     * @return float
+     */
+    public function getOutsideEU(): float
+    {
+        return $this->outsideEU;
     }
 }

@@ -13,14 +13,6 @@ use ShahariaAzam\BinList\Entity\BINEntity;
 interface BINClientInterface
 {
     /**
-     * Attach HTTP Client if needed
-     *
-     * @param ClientInterface $client // PSR-18 compatible HTTP Client
-     * @return BINClientInterface
-     */
-    public function setHttpClient(ClientInterface $client);
-
-    /**
      * @param string $bin
      * @return BINEntity
      */

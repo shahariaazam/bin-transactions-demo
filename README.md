@@ -51,57 +51,24 @@ For demonstration, you can use the demo transaction files from `tests/input.txt`
 ```php
 <?php
 
+use ShahariaAzam\BinList\Api\BINClient;
+use ShahariaAzam\BinList\Api\ExchangeRateClient;
 use ShahariaAzam\BinList\CommissionProcessor;
+use ShahariaAzam\BinList\CommissionRules;
 use ShahariaAzam\BinList\TransactionFileLoader;
+use Symfony\Component\HttpClient\Psr18Client;
 
 require __DIR__ . DIRECTORY_SEPARATOR . "vendor/autoload.php";
 
-$commissionProcessor = new CommissionProcessor();
-$commissionProcessor->setTransactionStorage(new TransactionFileLoader($filePath));
-$outputs = $commissionProcessor->process();     // Output will be array
-```
+$httpClient = new Psr18Client();
+$exchangeRateClient = new ExchangeRateClient($httpClient);
+$BINClient = new BINClient($httpClient);
+$transactionStorage = new TransactionFileLoader(__DIR__ . "/tests/input.txt");
+$commissionRules = new CommissionRules(0.01, 0.02);
 
-### Extend it
-
-#### Custom BIN API Client
-You can create your own BIN Client to get BIN data from other sources. Just create new
-provider by implementing `ShahariaAzam\BinList\BINClientInterface` and attach with `CommissionProcessor` by
-
-```php
-$processor = new \ShahariaAzam\BinList\CommissionProcessor();
-$processor->setBINClient($CustomBINAPIClient);
-```
-
-#### Custom Exchange Rate API Client
-Similiar to BIN Client, you can create your own Exchange Rate API client to get Exchange Rate data from other sources. Just create new
-provider by implementing `ShahariaAzam\BinList\ExchangeRateClientInterface` and attach with `CommissionProcessor` by
-
-```
-$processor = new \ShahariaAzam\BinList\CommissionProcessor();
-$processor->setExchangeRateClient($CustomExchangeRateClient);
-```
-
-#### Custom Transaction Storage
-Currently this library supports loading transactions for calculation from file system. But you can create your own loader. Just create new
-transaction storage provider by implementing `ShahariaAzam\BinList\TransactionStorageInterface` and attach with `CommissionProcessor` by
-
-```
-$processor = new \ShahariaAzam\BinList\CommissionProcessor();
-$processor->setTransactionStorage($CustomTransactionStorage);
-```
-
-#### PSR-18 Compatible HTTP Client
-You can attach any PSR-18 compatible HTTP Client attach with `CommissionProcessor` or `BINClient` or `ExchangeRateClient` by
-
-```
-$processor = new \ShahariaAzam\BinList\CommissionProcessor();
-$processor->setHttpClient($PSR18HTTPClient);
-
-$BINClient = new \ShahariaAzam\BinList\Api\BINClient();
-$BINClient->setHttpClient($PSR18HTTPClient);
-
-$exchangeRateClient = new \ShahariaAzam\BinList\Api\ExchangeRateClient();
-$exchangeRateClient->setHttpClient($PSR18HTTPClient);
+// Initialize commission processor
+$commissionProcessor = new CommissionProcessor($exchangeRateClient, $BINClient, $transactionStorage, $commissionRules);
+$outputs = $commissionProcessor->process();
 ```
 
 ### Run Tests

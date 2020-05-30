@@ -19,14 +19,9 @@ class CommonAPIClient
      */
     private $httpClient;
 
-    /**
-     * @param ClientInterface $httpClient
-     * @return CommonAPIClient
-     */
-    public function setHttpClient(ClientInterface $httpClient): CommonAPIClient
+    public function __construct(ClientInterface $httpClient)
     {
         $this->httpClient = $httpClient;
-        return $this;
     }
 
     /**
@@ -54,7 +49,7 @@ class CommonAPIClient
             throw new UtilityException('Failed to parse response');
         }
 
-        $data = json_decode($response->getBody()->getContents(), true);
+        $data = json_decode( (string) $response->getBody(), true);
         if (JSON_ERROR_NONE !== json_last_error()) {
             throw new UtilityException('Failed to parse response json');
         }
