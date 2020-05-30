@@ -24,30 +24,45 @@
  */
 
 /**
- * BankEntity class
+ * CommissionRules class
  *
- * @package  ShahariaAzam\BinList\Tests\Entity
+ * @package  ShahariaAzam\BinList
  */
 
 
-namespace ShahariaAzam\BinList\Tests\Entity;
+namespace ShahariaAzam\BinList;
 
-use PHPUnit\Framework\TestCase;
-use ShahariaAzam\BinList\Entity\BankEntity;
-
-class BankEntityTest extends TestCase
+class CommissionRules
 {
-    public function testEntity()
-    {
-        $bank = new \ShahariaAzam\BinList\Entity\BankEntity();
-        $bank->setName('Demo Bank');
-        $bank->setUrl('http://example.com');
-        $bank->setPhone('+123456789');
-        $bank->setCity('DEMO');
+    /**
+     * @var float
+     */
+    private $insideEU;
 
-        $this->assertEquals('Demo Bank', $bank->getName());
-        $this->assertEquals('http://example.com', $bank->getUrl());
-        $this->assertEquals('+123456789', $bank->getPhone());
-        $this->assertEquals('DEMO', $bank->getCity());
+    /**
+     * @var float
+     */
+    private $outsideEU;
+
+    public function __construct($insideEU, $outsideEU)
+    {
+        $this->insideEU = $insideEU;
+        $this->outsideEU = $outsideEU;
+    }
+
+    /**
+     * @return float
+     */
+    public function getInsideEU(): float
+    {
+        return $this->insideEU;
+    }
+
+    /**
+     * @return float
+     */
+    public function getOutsideEU(): float
+    {
+        return $this->outsideEU;
     }
 }
