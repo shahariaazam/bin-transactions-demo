@@ -63,10 +63,10 @@ class CommissionProcessor   //phpcs:ignore  Paysera/psr_1_file_side_effects
 
     /**
      * App Construction with default HTTP Client, BIN Client and ExchangeRate Client.
-     * @param ClientInterface $httpClient
      * @param ExchangeRateClientInterface $exchangeRateClient
      * @param BINClientInterface $BINClient
      * @param TransactionStorageInterface $transactionStorage
+     * @param CommissionRules $rules
      */
     public function __construct(
         ExchangeRateClientInterface $exchangeRateClient,
