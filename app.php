@@ -45,7 +45,7 @@ $transactionStorage = new TransactionFileLoader($argv[1]);
 $commissionRules = new CommissionRules(0.01, 0.02);
 
 // Initialize commission processor
-$commissionProcessor = new CommissionProcessor($httpClient, $exchangeRateClient, $BINClient, $transactionStorage, $commissionRules);
+$commissionProcessor = new CommissionProcessor($exchangeRateClient, $BINClient, $transactionStorage, $commissionRules);
 $outputs = $commissionProcessor->process();
 foreach ($outputs as $output) {
     echo $output . PHP_EOL;
