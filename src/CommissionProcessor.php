@@ -74,144 +74,25 @@ class CommissionProcessor   //phpcs:ignore  Paysera/psr_1_file_side_effects
 
     /**
      * App Construction with default HTTP Client, BIN Client and ExchangeRate Client.
-     */
-    public function __construct()
-    {
-        $this->httpClient = new Psr18Client();
-
-        $this->commissionInEU = 0.01;
-        $this->commissionOutsideEU = 0.02;
-    }
-
-    /**
-     * Add any PSR-18 compatible HTTP Client
-     *
      * @param ClientInterface $httpClient
-     * @return CommissionProcessor
-     */
-    public function setHttpClient(ClientInterface $httpClient): CommissionProcessor
-    {
-        $this->httpClient = $httpClient;
-        return $this;
-    }
-
-    /**
-     * @return ClientInterface
-     */
-    public function getHttpClient(): ClientInterface
-    {
-        return $this->httpClient;
-    }
-
-    /**
-     * Get exchange rate client provider
-     *
-     * @return ExchangeRateClientInterface
-     */
-    public function getExchangeRateClient(): ExchangeRateClientInterface
-    {
-        if (empty($this->exchangeRateClient)) {
-            $this->buildExchangeRateClient();
-        }
-
-        return $this->exchangeRateClient;
-    }
-
-    /**
-     * Attach exchange rate client provider
-     *
      * @param ExchangeRateClientInterface $exchangeRateClient
-     * @return CommissionProcessor
-     */
-    public function setExchangeRateClient(ExchangeRateClientInterface $exchangeRateClient): CommissionProcessor
-    {
-        $this->exchangeRateClient = $exchangeRateClient;
-
-        return $this;
-    }
-
-    /**
-     * Setup Transaction Storage
-     *
+     * @param BINClientInterface $BINClient
      * @param TransactionStorageInterface $transactionStorage
-     * @return CommissionProcessor
      */
-    public function setTransactionStorage(TransactionStorageInterface $transactionStorage): CommissionProcessor
-    {
+    public function __construct(
+        ClientInterface $httpClient,
+        ExchangeRateClientInterface $exchangeRateClient,
+        BINClientInterface $BINClient,
+        TransactionStorageInterface $transactionStorage,
+        CommissionRules $rules
+    ) {
+        $this->httpClient = $httpClient;
+        $this->BINClient = $BINClient;
+        $this->exchangeRateClient = $exchangeRateClient;
         $this->transactionStorage = $transactionStorage;
-        return $this;
-    }
 
-    /**
-     * @return ExchangeRateEntity
-     */
-    public function getExchangeRates(): ExchangeRateEntity
-    {
-        return $this->exchangeRates;
-    }
-
-    /**
-     * @param ExchangeRateEntity $exchangeRates
-     * @return CommissionProcessor
-     */
-    public function setExchangeRates(ExchangeRateEntity $exchangeRates): CommissionProcessor
-    {
-        $this->exchangeRates = $exchangeRates;
-        return $this;
-    }
-
-    /**
-     * @return TransactionEntity[]
-     */
-    public function getTransactions(): array
-    {
-        return $this->transactions;
-    }
-
-    /**
-     * @param TransactionEntity[] $transactions
-     * @return CommissionProcessor
-     */
-    public function setTransactions(array $transactions): CommissionProcessor
-    {
-        $this->transactions = $transactions;
-        return $this;
-    }
-
-    /**
-     * @return float
-     */
-    public function getCommissionInEU(): float
-    {
-        return $this->commissionInEU;
-    }
-
-    /**
-     * @param float $commissionInEU
-     * @return CommissionProcessor
-     */
-    public function setCommissionInEU(float $commissionInEU): CommissionProcessor
-    {
-        $this->commissionInEU = $commissionInEU;
-        return $this;
-    }
-
-    /**
-     * @return float
-     */
-    public function getCommissionOutsideEU(): float
-    {
-        return $this->commissionOutsideEU;
-    }
-
-    /**
-     * @param float $commissionOutsideEU
-     * @return CommissionProcessor
-     */
-    public function setCommissionOutsideEU(float $commissionOutsideEU): CommissionProcessor
-    {
-        $this->commissionOutsideEU = $commissionOutsideEU;
-        return $this;
+        $this->commissionInEU = $rules->getInsideEU();
+        $this->commissionOutsideEU = $rules->getOutsideEU();
     }
 
     /**
@@ -242,7 +123,7 @@ class CommissionProcessor   //phpcs:ignore  Paysera/psr_1_file_side_effects
      */
     public function checkExchangeRates(): CommissionProcessor
     {
-        $this->exchangeRates = $this->getExchangeRateClient()->get();
+        $this->exchangeRates = $this->exchangeRateClient->get();
         return $this;
     }
 
@@ -275,7 +156,7 @@ class CommissionProcessor   //phpcs:ignore  Paysera/psr_1_file_side_effects
     public function processSingleTransaction(TransactionEntity $transaction)
     {
         // Fetch the BIN details
-        $binDetails = $this->getBINClient()->get($transaction->getBin());
+        $binDetails = $this->BINClient->get($transaction->getBin());
 
         // Check whether BIN country is in EU or outside of EU
         $locatedInEU = self::isLocatedInEU($binDetails->getCountry()->getAlpha2());
@@ -296,28 +177,6 @@ class CommissionProcessor   //phpcs:ignore  Paysera/psr_1_file_side_effects
         // Inside/Outside EU commission
         $finalAmount = $amount * ($locatedInEU ? $this->commissionInEU : $this->commissionOutsideEU);
         return round($finalAmount, 2, PHP_ROUND_HALF_UP);
-    }
-
-    /**
-     * @return BINClientInterface
-     */
-    public function getBINClient(): BINClientInterface
-    {
-        if (empty($this->BINClient)) {
-            $this->buildBINClient();
-        }
-
-        return $this->BINClient;
-    }
-
-    /**
-     * @param BINClientInterface $BINClient
-     * @return CommissionProcessor
-     */
-    public function setBINClient(BINClientInterface $BINClient): CommissionProcessor
-    {
-        $this->BINClient = $BINClient;
-        return $this;
     }
 
     /**
@@ -356,33 +215,5 @@ class CommissionProcessor   //phpcs:ignore  Paysera/psr_1_file_side_effects
             'SK',
         ];
         return in_array(strtoupper($country), $euCountries, true);
-    }
-
-    /**
-     * @return ExchangeRateClientInterface
-     */
-    protected function buildExchangeRateClient(): ExchangeRateClientInterface
-    {
-        if (!isset($this->exchangeRateClient)) {
-            $exchangeRateClient = new ExchangeRateClient();
-            $exchangeRateClient->setHttpClient($this->httpClient);
-            $this->exchangeRateClient = $exchangeRateClient;
-        }
-
-        return $this->exchangeRateClient;
-    }
-
-    /**
-     * @return BINClientInterface
-     */
-    private function buildBINClient(): BINClientInterface
-    {
-        if (!isset($this->BINClient)) {
-            $binClient = new BINClient();
-            $binClient->setHttpClient($this->httpClient);
-            $this->BINClient = $binClient;
-        }
-
-        return $this->BINClient;
     }
 }
