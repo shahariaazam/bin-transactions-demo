@@ -3,12 +3,9 @@
 namespace ShahariaAzam\BinList;
 
 use Psr\Http\Client\ClientInterface;
-use ShahariaAzam\BinList\Api\BINClient;
-use ShahariaAzam\BinList\Api\ExchangeRateClient;
 use ShahariaAzam\BinList\Entity\ExchangeRateEntity;
 use ShahariaAzam\BinList\Entity\TransactionEntity;
 use ShahariaAzam\BinList\Exception\UtilityException;
-use Symfony\Component\HttpClient\Psr18Client;
 
 /**
  * Main class for this Utility operation
@@ -30,14 +27,6 @@ class CommissionProcessor   //phpcs:ignore  Paysera/psr_1_file_side_effects
      * @var ExchangeRateClientInterface
      */
     private $exchangeRateClient;
-
-    /**
-     * A PSR-18 compatible HTTP client.
-     * Default client: Symfony\Component\HttpClient\Psr18Client
-     *
-     * @var ClientInterface
-     */
-    private $httpClient;
 
     /**
      * We can build and attach more custom transaction storage.
@@ -80,13 +69,11 @@ class CommissionProcessor   //phpcs:ignore  Paysera/psr_1_file_side_effects
      * @param TransactionStorageInterface $transactionStorage
      */
     public function __construct(
-        ClientInterface $httpClient,
         ExchangeRateClientInterface $exchangeRateClient,
         BINClientInterface $BINClient,
         TransactionStorageInterface $transactionStorage,
         CommissionRules $rules
     ) {
-        $this->httpClient = $httpClient;
         $this->BINClient = $BINClient;
         $this->exchangeRateClient = $exchangeRateClient;
         $this->transactionStorage = $transactionStorage;
@@ -135,13 +122,6 @@ class CommissionProcessor   //phpcs:ignore  Paysera/psr_1_file_side_effects
      */
     public function loadTransactions(): CommissionProcessor
     {
-        if (!isset($this->transactionStorage)) {
-            throw new UtilityException(
-                "No transaction storage found that implements 
-                ShahariaAzam\BinList\Interfaces\TransactionStorageInterface interface"
-            );
-        }
-
         $this->transactions = $this->transactionStorage->get();
         return $this;
     }
