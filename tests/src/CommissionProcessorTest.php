@@ -32,13 +32,15 @@
 
 namespace ShahariaAzam\BinList\Tests;
 
+use Nyholm\Psr7\Factory\Psr17Factory;
+use PHPUnit\Framework\MockObject\MockObject;
 use PHPUnit\Framework\TestCase;
 use Psr\Http\Client\ClientInterface;
+use ShahariaAzam\BinList\Api\BINClient;
+use ShahariaAzam\BinList\Api\ExchangeRateClient;
 use ShahariaAzam\BinList\BINClientInterface;
 use ShahariaAzam\BinList\CommissionProcessor;
 use ShahariaAzam\BinList\CommissionRules;
-use ShahariaAzam\BinList\Entity\BINEntity;
-use ShahariaAzam\BinList\Entity\CountryEntity;
 use ShahariaAzam\BinList\Entity\TransactionEntity;
 use ShahariaAzam\BinList\Exception\UtilityException;
 use ShahariaAzam\BinList\ExchangeRateClientInterface;
@@ -82,9 +84,13 @@ class CommissionProcessorTest extends TestCase
         $transactionAmount,
         $transactionCurrency
     ) {
-        // Mock BIN Entity
-        $binEntity = new BINEntity();
-        $binEntity->setCountry((new CountryEntity())->setAlpha2($binCountryAlpha2));
+        $binClient = $this->getMockBINClient(['country' => ['alpha2' => $binCountryAlpha2]]);
+        $exchangeRatesClient = $this->getMockExchangeRateClient([
+            'base' => 'EUR',
+            'rates' => [
+                $transactionCurrency => $currencyExchangeRate
+            ]
+        ]);
 
         // Set transaction details
         $transaction = new TransactionEntity();
@@ -93,35 +99,63 @@ class CommissionProcessorTest extends TestCase
         $transaction->setBin(123456789);
 
         /**
-         * @var $binClient BINClientInterface
-         */
-        $binClient = $this->getMockBuilder(BINClientInterface::class)->getMock();
-        $binClient->method('get')->willReturn($binEntity);
-
-        /**
          * @var $transactionStorage TransactionStorageInterface
          */
         $transactionStorage = $this->getMockBuilder(TransactionStorageInterface::class)->getMock();
         $transactionStorage->method('get')->willReturn([$transaction]);
 
-        /**
-         * @var $exchangeRatesClient ExchangeRateClientInterface
-         */
-        $exchangeRatesClient = $this->getMockBuilder(ExchangeRateClientInterface::class)->getMock();
-        $exchangeRatesClient->method('get')->willReturn(MockUtility::getMockCurrencyRates(
-            'EUR',
-            [$transactionCurrency => $currencyExchangeRate]
-        ));
-
-        /**
-         * @var ClientInterface $httpClientMock
-         */
-        $httpClientMock = $this->getMockBuilder(ClientInterface::class)->getMock();
-
         $commissionDefaultRules = new CommissionRules(0.01, 0.02);
 
-        $processor = new CommissionProcessor($httpClientMock, $exchangeRatesClient, $binClient, $transactionStorage, $commissionDefaultRules);
+        $processor = new CommissionProcessor($exchangeRatesClient, $binClient, $transactionStorage, $commissionDefaultRules);
         $results = $processor->process();
         return $results[0];
+    }
+
+    /**
+     * @param int $statusCode
+     * @param array $headers
+     * @param string $data
+     * @return MockObject|ClientInterface
+     */
+    private function getMockHttpClient($statusCode = 200, array $headers = [], $data = '')
+    {
+        $psr17Factory = new Psr17Factory();
+
+        if (!empty($data) && is_array($data)) {
+            $responseBody = $psr17Factory->createStream(json_encode($data));
+        } else {
+            $responseBody = $psr17Factory->createStream($data);
+        }
+
+        $response = $psr17Factory->createResponse($statusCode);
+
+        foreach ($headers as $key => $value) {
+            $response = $response->withHeader($key, $value);
+        }
+        $response = $response->withBody($responseBody);
+
+        $httpClient = $this->getMockBuilder(ClientInterface::class)->getMock();
+        $httpClient->method('sendRequest')->willReturn($response);
+        return $httpClient;
+    }
+
+    /**
+     * @param $currency
+     * @param $exchangeRate
+     * @return ExchangeRateClientInterface
+     */
+    private function getMockExchangeRateClient(array $mockExchangeRateData)
+    {
+        return new ExchangeRateClient($this->getMockHttpClient(200, ['Content-Type' => 'application/json'], $mockExchangeRateData));
+    }
+
+    /**
+     * @param $currency
+     * @param $exchangeRate
+     * @return BINClientInterface
+     */
+    private function getMockBINClient(array $mockBindata)
+    {
+        return new BINClient($this->getMockHttpClient(200, ['Content-Type' => 'application/json'], $mockBindata));
     }
 }
