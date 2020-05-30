@@ -3,6 +3,7 @@
 namespace ShahariaAzam\BinList\Api;
 
 use DateTime;
+use Psr\Http\Client\ClientInterface;
 use ShahariaAzam\BinList\Entity\ExchangeRateEntity;
 use ShahariaAzam\BinList\Exception\UtilityException;
 use ShahariaAzam\BinList\ExchangeRateClientInterface;
