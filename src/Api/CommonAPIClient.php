@@ -19,14 +19,9 @@ class CommonAPIClient
      */
     private $httpClient;
 
-    /**
-     * @param ClientInterface $httpClient
-     * @return CommonAPIClient
-     */
-    public function setHttpClient(ClientInterface $httpClient): CommonAPIClient
+    public function __construct(ClientInterface $httpClient)
     {
         $this->httpClient = $httpClient;
-        return $this;
     }
 
     /**

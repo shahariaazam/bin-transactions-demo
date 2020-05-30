@@ -8,12 +8,6 @@ use ShahariaAzam\BinList\Entity\ExchangeRateEntity;
 interface ExchangeRateClientInterface
 {
     /**
-     * @param ClientInterface $client
-     * @return ExchangeRateClientInterface
-     */
-    public function setHttpClient(ClientInterface $client);
-
-    /**
      * @param null $path
      * @return ExchangeRateEntity
      */
